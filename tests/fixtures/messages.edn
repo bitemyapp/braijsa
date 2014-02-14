@@ -1,0 +1,12 @@
+[{:Message/uuid #uuid "f81d4fae-7dec-11d0-a765-00a0c91e6bf6"
+  :db/id #db/id[:db.part/user]
+  :Message/message_type :Message.message_type/update
+  :Message/timestamp #inst "2002-10-02T15:00:00Z"}
+ {:Message/uuid #uuid "f81d4fae-7dec-11d0-a765-00a0c91e6bf7"
+  :db/id #db/id[:db.part/user]
+  :Message/message_type :Message.message_type/update
+  :Message/timestamp #inst "2004-10-02T15:00:00Z"}
+ {:Message/uuid #uuid "f81d4fae-7dec-11d0-a765-00a0c91e6bf8"
+  :db/id #db/id[:db.part/user]
+  :Message/message_type :Message.message_type/create
+  :Message/timestamp #inst "2003-10-02T15:00:00Z"}]

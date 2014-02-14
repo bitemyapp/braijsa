@@ -1,0 +1,6 @@
+parsetab.py
+*.pyc
+dist/
+.ropeproject/
+parser.out
+.DS_Store

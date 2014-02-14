@@ -1,0 +1,8 @@
+* Braijsa
+
+“the more fondly we imagine something will last forever, the more ephemeral it often proves to be” 
+― Iain M. Banks, Excession
+
+** What is it?
+
+Admin dashboard (à la Django) for Datomic databases fronted by a bottom based client and Berossus REST API.
