@@ -2,7 +2,7 @@ from flask import g, jsonify, redirect, render_template, request, session, url_f
 # import forms
 import models
 from server import app
-from util import comp, get, K, lwrap, par, S
+from util import comp, cond_apply, get, K, left, lwrap, par, S
 
 class Item(object):
     def __init__(self, data, url=None, label=None):
@@ -45,9 +45,40 @@ def navigate_pages(count, limit, page):
     last_page = count / limit
     return (prev_page, next_page, last_page)
 
-# def item_given_metadata(field_meta, value):
-#     if 
-#     return Item(value)
+def replace_by_name(keyed, pair):
+    field, value = pair
+    metadata = keyed[field]
+    return metadata, value
+
+def paired_field_to_attribute(model, pair):
+    """ "Message", ("message_type", 234925093459) =>
+                   ("Message/message_type", 234925093459) """
+    to_attr = par(models.field_to_attribute, model)
+    # leave "db/id" alone
+    already_model = lambda x: "/" not in x
+    maybe_change_to_attribute = par(cond_apply,
+                                    already_model,
+                                    to_attr)
+    return par(left, maybe_change_to_attribute)(pair)
+
+def item_given_metadata(model, attr_metadata, pair):
+    attributed = paired_field_to_attribute(model, pair)
+    attribute, value = attributed
+    this_attr_metadata = attr_metadata[attribute]
+    db_type = this_attr_metadata["db/valueType"]
+    is_ref = db_type == "db.type/ref"
+    url = None
+    if attribute == "db/id" or is_ref:
+        url = url_for("instance", id=value)
+    return Item(value, url=url)
+
+# def zipped_pairs_into_metadata_and_value(model, zipped):
+#     replacer = par(replace_by_name, keyed_fields)
+#     with_model = comp(replacer, change_to_attribute)
+#     return map(lambda x: map(with_model, x), zipped)
+# replaced = zipped_pairs_into_metadata_and_value(model, zipped)
+# import pprint; pp = pprint.PrettyPrinter(indent=4); pp.pprint(replaced)
+
 @app.route('/list/<model>')
 def model_instances(model):
     page, limit, offset = paginate(request)
@@ -60,7 +91,11 @@ def model_instances(model):
     instances = results[K("result")]
     count = results[K("count")]
     prev_page, next_page, last_page = navigate_pages(count, limit, page)
-    data = map(par(map, Item), instances)
+    zipped = map(lambda x: zip(fields_plus, x), instances)
+    # fields and their metadata keyed by stringly db/ident
+    attr_metadata = models.keyed_field_instances_for_model_s(model)
+    generator = par(item_given_metadata, model, attr_metadata)
+    data = map(par(map, generator), zipped)
     return render_template('table.html', **locals())
 
 @app.route('/view/<int:id>')

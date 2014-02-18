@@ -149,5 +149,12 @@ def stringify_keywords(d):
 def field_instances_for_model_s(model):
     return map(stringify_keywords, field_instances_for_model(model))
 
+# Fakey, but it suffices.
+db_id_instance = {"db/cardinality": "db.cardinality/one",
+                  "db/ident": "db/id",
+                  "db/valueType": "db.type/long"}
+
 def keyed_field_instances_for_model_s(model):
-    return selector_to_dict(field_instances_for_model_s(model), "db/ident")
+    keyed = selector_to_dict(field_instances_for_model_s(model), "db/ident")
+    keyed['db/id'] = db_id_instance
+    return keyed
