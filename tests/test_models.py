@@ -49,8 +49,14 @@ def inject_id(d, dbid=loads("#db/id[:db.part/user]")):
     d[K("db/id")] = dbid
     return d
 
-def generate_message():
-    message_type = generate_enum("Message", "message_type", ["update", "create"])
-    return inject_id({K("Message/uuid"): generate_uuid(),
-                      K("Message/message_type"): message_type,
-                      K("Message/timestamp"): generate_instant()})
+def generate_message_type():
+    return generate_enum("Message", "message_type", ["update", "create"])
+
+def generate_message(partial=True):
+    entity = {}
+    for k, g in [(K("Message/uuid"), generate_uuid),
+                 (K("Message/message_type"), generate_message_type),
+                 (K("Message/timestamp"), generate_instant)]:
+        if not partial or random.choice([True, False]):
+            entity[k] = g()
+    return inject_id(entity)

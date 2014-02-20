@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div class="row">
+  <div class="large-12 columns">
+    <h3>Listing of models we can find in the database</h3>
+    <ul>
+      {% for row in data %}
+      <li>
+        <a href="{{row.url}}">{{row.label}}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+{% endblock body %}

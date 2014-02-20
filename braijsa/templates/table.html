@@ -5,79 +5,11 @@
 {% if breadcrumbs %}
 <div class="row">
 
-  <div class="large-3 columns">
-    {% for label, url in breadcrumbs %}
-      <a href="{{url}}">{{label}}</a>
-    {% endfor %}
-  </div>
+  {% include 'breadcrumb.html' %}
 
-  <div class="large-3 columns">
-    {% if count %}
-      Count is: {{count}}
-    {% endif %}
-  </div>
+  {% include 'pagination.html' %}
 
-  <div class="large-3 columns">
-    {% if page %}
-    Number of results to show:
-    <table>
-      <tr>
-        <td>
-          <a href="?page={{page}}&limit={{20}}">20</a>
-        </td>
-        <td>
-          <a href="?page={{page}}&limit={{100}}">100</a>
-        </td>
-        <td>
-          <a href="?page={{page}}&limit={{1000}}">1000</a>
-        </td>
-      </tr>
-
-      <tr>
-        <td>
-          {% if prev_page %}
-            <a href="?page=1&limit={{limit}}">
-          {% endif %}
-              First
-          {% if prev_page %}</a>{% endif %}
-        </td>
-
-        <td>
-        {% if prev_page %}
-          <a href="?page={{prev_page}}&limit={{limit}}">
-        {% endif %}
-            Prev
-        {% if prev_page %}</a>{% endif %}
-        </td>
-
-        <td>
-          Pg {{page}}
-        </td>
-
-        <td>
-          {% if next_page %}
-          <a href="?page={{next_page}}&limit={{limit}}">
-          {% endif %}
-            Next
-          {% if next_page %}
-          </a>
-          {% endif %}
-        </td>
-
-        <td>
-          {% if next_page %}
-          <a href="?page={{last_page}}&limit={{limit}}">
-          {% endif %}
-            Last Page
-          {% if next_page %}
-          </a>
-          {% endif %}
-        </td>
-      </tr>
-    </table>
-    {% endif %}
-  </div>
-
+  {% include 'query.html' %}
 </div>
 <br><hr>
 {% endif %}
@@ -87,6 +19,7 @@
     <table>
       <thead>
         <tr>
+
           {% for column in headers %}
           <th>
             {% if column.url %}
@@ -96,7 +29,9 @@
             {% endif %}
           </th>
           {% endfor %}
+
         </tr>
+
           <tbody>
             {% for row in data %}
             <tr>

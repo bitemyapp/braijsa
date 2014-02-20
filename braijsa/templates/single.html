@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "formhelpers.html" import render_field %}
+
+{% block body %}
+
+{% if breadcrumbs %}
+<div class="row">
+  {% include 'breadcrumb.html' %}
+</div>
+{% endif %}
+
+
+<div class="row">
+  <div class="large-12 columns">
+
+        {% for label, field in instance %}
+        <tr>
+          <td>{{label.as_html()}}</td>
+          <td>{{field.as_html()}}</td>
+        </tr>
+        {% endfor %}
+
+  </div>
+</div>
+
+{% endblock body %}

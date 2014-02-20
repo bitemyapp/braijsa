@@ -10,6 +10,9 @@ class Item(object):
         self.url = url
         self.label = label or data
 
+    def __repr__(self):
+        return "<Item url: " + self.url + " data: " + self.data + " label: " + self.label + ">"
+
 def url(prefix, item, getter="data"):
     item.url = prefix + getattr(item, getter)
     return item
@@ -20,11 +23,12 @@ def add_fields(model_row):
 
 @app.route('/')
 def index():
-    page_desc = "Listing of models we can find in the database"
+    page_desc = "Home"
     headers = map(Item, ["Model name", "Fields"])
     comped = comp(add_fields, par(map, comp(par(url, "/list/"), Item)), lwrap)
     data = map(comped, models.get_models())
-    return render_template('table.html', **locals())
+    import pprint; pp = pprint.PrettyPrinter(indent=4); pp.pprint(data)
+    return render_template('index.html', **locals())
 
 def get_offset(page, limit):
     return (page * limit) - limit
@@ -101,7 +105,10 @@ def model_instances(model):
 @app.route('/view/<int:id>')
 def instance(id):
     page_desc = "Viewing instance id: " + str(id)
+    extra_bc = request.args.get("breadcrumb")
     breadcrumbs = [("Home", url_for("index"))]
+    if extra_bc:
+        breadcrumbs.append(extra_bc)
     this = models.values_for_instance(id)[K("result")][0][0]
     fields = this.keys()
     headers = map(comp(Item, str), fields)

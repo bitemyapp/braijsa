@@ -1,5 +1,6 @@
 import functools as fn
 from edn_format import Keyword, Symbol
+from itertools import chain
 
 def comp(*functions):
     return fn.reduce(lambda f, g: lambda x: f(g(x)), functions)
@@ -19,6 +20,9 @@ ffirst   = comp(first, first)
 K        = Keyword
 S        = Symbol
 get      = lambda f, i: i[f]
+
+def concat(*lists):
+    return chain(lists)
 
 def cond_apply(pred, f, datum):
     if pred(datum):
