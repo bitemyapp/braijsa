@@ -17,11 +17,8 @@ class Item(object):
 def index():
     page_desc = "Home"
     headers = map(Item, ["Model name"])
-    known = models.get_models()
-    data = []
-    for model in known:
-        item = Item(model, url="/list/" + model, label=model)
-        data.append(item)
+    data = map(lambda x: Item(x, url="/list/" + x, label=x),
+               models.get_models())
     return render_template('index.html', **locals())
 
 def get_offset(page, limit):
@@ -43,21 +40,11 @@ def navigate_pages(count, limit, page):
     last_page = count / limit
     return (prev_page, next_page, last_page)
 
-def replace_by_name(keyed, pair):
-    field, value = pair
-    metadata = keyed[field]
-    return metadata, value
-
 def paired_field_to_attribute(model, pair):
     """ "Message", ("message_type", 234925093459) =>
                    ("Message/message_type", 234925093459) """
-    to_attr = par(models.field_to_attribute, model)
-    # leave "db/id" alone
-    already_model = lambda x: "/" not in x
-    maybe_change_to_attribute = par(cond_apply,
-                                    already_model,
-                                    to_attr)
-    return par(left, maybe_change_to_attribute)(pair)
+    field, value = pair
+    return (model + "/" + field, value)
 
 def item_given_metadata(model, attr_metadata, pair):
     attributed = paired_field_to_attribute(model, pair)
