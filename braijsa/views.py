@@ -72,7 +72,7 @@ def item_given_metadata(model, attr_metadata, pair):
     db_type = this_attr_metadata["db/valueType"]
     is_ref = db_type == "db.type/ref"
     url = None
-    if attribute == "db/id" or is_ref:
+    if (attribute == "db/id" or is_ref) and value is not None and type(value) is int:
         url = url_for("instance", id=value)
     return Item(value, url=url)
 
@@ -90,16 +90,26 @@ def model_instances(model):
     breadcrumbs = [("Home", url_for("index"))]
     fields = models.fields_for_model(model)
     fields_plus = ["db/id"] + fields
+    attributes = ["db/id"] + map(par(models.field_to_attribute, model), fields)
     headers = map(Item, fields_plus) # [Item("id")] + 
     results = models.instances_for_model(model, fields, limit=limit, offset=offset)
     instances = results[K("result")]
     count = results[K("count")]
     prev_page, next_page, last_page = navigate_pages(count, limit, page)
-    zipped = map(lambda x: zip(fields_plus, x), instances)
     # fields and their metadata keyed by stringly db/ident
     attr_metadata = models.keyed_field_instances_for_model_s(model)
-    generator = par(item_given_metadata, model, attr_metadata)
-    data = map(par(map, generator), zipped)
+    data = []
+    for instance in instances:
+        row = []
+        for field in attributes:
+            stred = models.stringify_keywords(instance[0])
+            pair = (field, stred.get(field))
+            row.append(item_given_metadata(model, attr_metadata, pair))
+        data.append(row)
+    # import pprint; pp = pprint.PrettyPrinter(indent=4); pp.pprint(attr_metadata)
+    # zipped = map(lambda x: zip(fields_plus, x), instances)
+    # generator = par(item_given_metadata, model, attr_metadata)
+    # data = map(par(map, generator), zipped)
     return render_template('table.html', **locals())
 
 @app.route('/view/<int:id>')

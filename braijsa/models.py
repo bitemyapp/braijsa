@@ -83,32 +83,6 @@ def sym_to_str(sym):
 def field_to_attribute(model, field):
     return model + "/" + field
 
-# def instances_for_model(model, fields=None, limit=20, offset=0):
-#     if not fields:
-#         fields = fields_for_model(model)
-#     # par is partial application, comp is function composition.
-#     # left and right apply a function (first argument) to the
-#     # left or right-hand side of a tuple (second argument)
-#     add_entity_variable = par(add, (S("?e"),))
-#     value_to_symbol = par(right, S)
-#     prepend_value_with_qmark = par(right, qify)
-#     attribute_to_keyword = par(left, K)
-#     attribute_from_field = par(left, par(field_to_attribute, model))
-#     constraints = map(comp(add_entity_variable, # ((Symbol("?e"), ...)
-#                       value_to_symbol,
-#                       prepend_value_with_qmark,
-#                       attribute_to_keyword,
-#                       attribute_from_field,
-#                       dubs), 
-#                 fields)
-#     nouns = [S("?e")] + map(par(nth, 2), constraints)
-#     assembled_query = query_with_constraints(nouns, constraints)
-#     # given model "Message" with fields "message_type", "uuid", "timestamp",
-#     # should get [(S("?e"),
-#     #              K("Message/message_type"),
-#     #              S("?message_type")) e.t.c.]
-#     return query_fn(Config().berossus_url, assembled_query, limit=limit, offset=offset)
-
 def get_entity(field):
     return [[S("get-entity"), S("?ent")],
             [S("?ent"), field, S("_")]]
@@ -120,13 +94,12 @@ def instances_for_model(model, fields=None, limit=20, offset=0):
     keywordify = comp(K, attribute_from_field)
     entity_from_field = comp(get_entity, keywordify)
     rules = map(entity_from_field, fields)
-    query = [K("find"), S("?e"), S("?touched"), K("in"), S("$"), S("%"),
+    query = [K("find"), S("?touched"), K("in"), S("$"), S("%"),
              K("where"), S("(get-entity ?eid)"),
                           [S("(datomic.api/entity $ ?eid)"), S("?e")],
                           [S("(datomic.api/touch ?e)"), S("?touched")]]
-    import pprint; pp = pprint.PrettyPrinter(indent=4); pp.pprint(dumps(rules))
-    pp.pprint(dumps(query))
-    return query_fn(Config().berossus_url, query, params=[rules], limit=limit, offset=offset)
+    return query_fn(Config().berossus_url, query,
+                    params=[rules], limit=limit, offset=offset)
 
 def values_for_instance(id):
     return query_fn(Config().berossus_url,
@@ -166,6 +139,9 @@ def keyword_to_str(k):
 def stringify_keywords(d):
     return rewrite_dict(d, tuple_comb(*list(dubs(par(cond_apply, keywordp, keyword_to_str)))))
 
+def keywordify_strings(d):
+    return rewrite_dict(d, tuple_comb(*list(dubs(par(cond_apply, keywordp, K)))))
+
 def field_instances_for_model_s(model):
     return map(stringify_keywords, field_instances_for_model(model))
 
@@ -173,6 +149,11 @@ def field_instances_for_model_s(model):
 db_id_instance = {"db/cardinality": "db.cardinality/one",
                   "db/ident": "db/id",
                   "db/valueType": "db.type/long"}
+
+def keyed_field_instances_for_model_k(model):
+    keyed = selector_to_dict(field_instances_for_model(model), K("db/ident"))
+    keyed[K("db/id")] = keywordify_strings(db_id_instance)
+    return keyed
 
 def keyed_field_instances_for_model_s(model):
     keyed = selector_to_dict(field_instances_for_model_s(model), "db/ident")
