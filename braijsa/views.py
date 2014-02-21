@@ -13,21 +13,15 @@ class Item(object):
     def __repr__(self):
         return "<Item url: " + self.url + " data: " + self.data + " label: " + self.label + ">"
 
-def url(prefix, item, getter="data"):
-    item.url = prefix + getattr(item, getter)
-    return item
-
-def add_fields(model_row):
-    model_row.append(models.fields_for_model(model_row[0]))
-    return model_row
-
 @app.route('/')
 def index():
     page_desc = "Home"
-    headers = map(Item, ["Model name", "Fields"])
-    comped = comp(add_fields, par(map, comp(par(url, "/list/"), Item)), lwrap)
-    data = map(comped, models.get_models())
-    import pprint; pp = pprint.PrettyPrinter(indent=4); pp.pprint(data)
+    headers = map(Item, ["Model name"])
+    known = models.get_models()
+    data = []
+    for model in known:
+        item = Item(model, url="/list/" + model, label=model)
+        data.append(item)
     return render_template('index.html', **locals())
 
 def get_offset(page, limit):
@@ -76,13 +70,6 @@ def item_given_metadata(model, attr_metadata, pair):
         url = url_for("instance", id=value)
     return Item(value, url=url)
 
-# def zipped_pairs_into_metadata_and_value(model, zipped):
-#     replacer = par(replace_by_name, keyed_fields)
-#     with_model = comp(replacer, change_to_attribute)
-#     return map(lambda x: map(with_model, x), zipped)
-# replaced = zipped_pairs_into_metadata_and_value(model, zipped)
-# import pprint; pp = pprint.PrettyPrinter(indent=4); pp.pprint(replaced)
-
 @app.route('/list/<model>')
 def model_instances(model):
     page, limit, offset = paginate(request)
@@ -106,10 +93,6 @@ def model_instances(model):
             pair = (field, stred.get(field))
             row.append(item_given_metadata(model, attr_metadata, pair))
         data.append(row)
-    # import pprint; pp = pprint.PrettyPrinter(indent=4); pp.pprint(attr_metadata)
-    # zipped = map(lambda x: zip(fields_plus, x), instances)
-    # generator = par(item_given_metadata, model, attr_metadata)
-    # data = map(par(map, generator), zipped)
     return render_template('table.html', **locals())
 
 @app.route('/view/<int:id>')
