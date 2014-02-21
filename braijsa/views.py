@@ -92,6 +92,5 @@ def instance(id):
     this = models.values_for_instance(id)[K("result")][0][0]
     fields = this.keys()
     headers = map(comp(Item, str), fields)
-    getter = par(get, this)
-    data = [map(comp(Item, getter), fields)]
+    data = [map(lambda x: Item(this[x]), this)]
     return render_template('table.html', **locals())
